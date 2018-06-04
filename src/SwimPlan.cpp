@@ -11,5 +11,6 @@
 
 int main() {
 	cout << "!!!Hello World!!!" << endl; // prints !!!Hello World!!!
+	cout << endl;
 	return 0;
 }
