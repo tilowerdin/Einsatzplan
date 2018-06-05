@@ -33,7 +33,7 @@ struct PoolSlot {
 };
 
 struct GymSlot {
-	int gym;
+	char* gym;
 	Time* time;
 };
 
@@ -56,12 +56,20 @@ map<int,char*> splitAndRemoveComments(string str);
 
 Day toDay (char* dayStr);
 
-pair<int, PoolSlot**> toPoolSlot (map<int, char*> line);
+pair<int, PoolSlot**> toPoolSlot (map<int, char*> line, char* pool);
+
+pair<int, GymSlot**> toGymSlot (map<int, char*> line, char* label);
 
 PoolSlot* poolSlot(Day day, int hour, int lane, char* pool);
 
+GymSlot* gymSlot(Day day, int hour, char* label);
+
 pair<int, PoolSlot**> append(pair<int, PoolSlot**> first, pair<int, PoolSlot**> second);
 
+pair<int, GymSlot**> append(pair<int, GymSlot**> first, pair<int, GymSlot**> second);
+
 void printPool(PoolSlot* poolSlot);
+
+void printGym(GymSlot* gymSlot);
 
 #endif /* SWIMPLAN_H_ */

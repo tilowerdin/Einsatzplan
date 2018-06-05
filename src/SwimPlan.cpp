@@ -69,13 +69,12 @@ string fromDay(Day day) {
 }
 
 pair<int, PoolSlot**> toPoolSlot (map<int, char*> line, char* pool) {
-	// 0 Bahn 1 Tag 2 von 3 bis
 
-	Day day = toDay(line[1]);
+	Day day = toDay(line[COLDAY]);
 
-	int from = atoi(line[2]);
-	int to = atoi(line[3]);
-	int lane = atoi(line[0]);
+	int from = atoi(line[COLFROM]);
+	int to = atoi(line[COLTO]);
+	int lane = atoi(line[COLLANE]);
 
 
 	pair<int, PoolSlot**> result(to-from, (PoolSlot**) calloc((to-from), sizeof(PoolSlot*)));
@@ -88,6 +87,22 @@ pair<int, PoolSlot**> toPoolSlot (map<int, char*> line, char* pool) {
 	return result;
 }
 
+pair<int, GymSlot**> toGymSlot (map<int, char*> line, char* label) {
+    Day day = toDay(line[COLDAY]);
+    int from = atoi(line[COLFROM]);
+    int to = atoi(line[COLTO]);
+
+    pair<int, GymSlot**> result(to-from, (GymSlot**) calloc((to-from), sizeof(GymSlot*)));
+
+    for(int i = from; i < to; i++) {
+    	GymSlot* slot = gymSlot(day,i,label);
+    	result.second[i-from] = slot;
+    }
+
+    return result;
+}
+
+
 PoolSlot* poolSlot(Day day, int hour, int lane, char* pool) {
 	PoolSlot* slot = (PoolSlot*) malloc(sizeof(PoolSlot));
 	slot -> lane = lane;
@@ -98,6 +113,17 @@ PoolSlot* poolSlot(Day day, int hour, int lane, char* pool) {
 	slot -> time = time;
 	return slot;
 }
+
+GymSlot* gymSlot(Day day, int hour, char* label) {
+	GymSlot* slot = (GymSlot*) malloc(sizeof(GymSlot));
+	slot -> gym = label;
+	Time* time = (Time*) malloc(sizeof(Time));
+	time -> day = day;
+	time -> hour = hour;
+	slot -> time = time;
+	return slot;
+}
+
 
 map<int,char*> splitAndRemoveComments(string str) {
 	char* s = (char*) calloc(32, sizeof(char));
@@ -138,6 +164,12 @@ void printPool(PoolSlot* poolSlot) {
 		 << poolSlot -> lane << endl;
 }
 
+void printGym(GymSlot* gymSlot) {
+	cout << gymSlot -> gym << " "
+	     << fromDay(gymSlot -> time -> day) << " "
+		 << gymSlot -> time -> hour << endl;
+}
+
 pair<int, PoolSlot**> append(pair<int, PoolSlot**> first, pair<int, PoolSlot**> second) {
 	if (first.first == 0)
 		return second;
@@ -154,6 +186,23 @@ pair<int, PoolSlot**> append(pair<int, PoolSlot**> first, pair<int, PoolSlot**> 
 	return first;
 }
 
+pair<int, GymSlot**> append(pair<int, GymSlot**> first, pair<int, GymSlot**> second) {
+	if (first.first == 0)
+		return second;
+
+	first.first += second.first;
+	first.second = (GymSlot**) realloc(first.second, first.first * sizeof (GymSlot*));
+
+	for (int i = 0; i < second.first; i++) {
+		first.second[first.first - second.first + i] = second.second[i];
+	}
+
+	// free second
+
+	return first;
+}
+
+
 int main() {
 
 	string line;
@@ -166,6 +215,9 @@ int main() {
 
 	pair<int, PoolSlot**> pools(0,NULL);
 	pair<int, PoolSlot**> lineRes(0,NULL);
+
+	pair<int, GymSlot**> gyms(0,NULL);
+	pair<int, GymSlot**> lineGyms(0,NULL);
 	int lineNumber = 0;
 
 	try {
@@ -196,6 +248,10 @@ int main() {
 					lineRes = toPoolSlot(m,building);
 					pools = append(pools, lineRes);
 					break;
+				case GYMSTATE: // reading
+					lineGyms = toGymSlot(m,building);
+					gyms = append(gyms, lineGyms);
+					break;
 				default:
 					break;
 				}
@@ -209,6 +265,10 @@ int main() {
 	}
 	} catch (char const* e) {
 		cerr << e << endl;
+	}
+
+	for (int i = 0; i < gyms.first; i++) {
+		printGym(gyms.second[i]);
 	}
 
 	for (int i = 0; i < pools.first; i++) {

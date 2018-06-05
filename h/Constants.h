@@ -19,5 +19,10 @@ const char* COMMENT = "--";
 const int POOLSTATE = 1;
 const int GYMSTATE = 2;
 
+const int COLLANE = 3;
+const int COLDAY = 0;
+const int COLFROM = 1;
+const int COLTO = 2;
+
 
 #endif /* CONSTANTS_H_ */
