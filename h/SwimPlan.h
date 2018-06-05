@@ -9,6 +9,12 @@
 #define SWIMPLAN_H_
 
 #include <string>
+#include <map>
+#include <iostream>
+#include <fstream>
+#include <list>
+#include <stdlib.h>
+#include <string.h>
 
 using namespace std;
 
@@ -21,14 +27,14 @@ struct Time {
 };
 
 struct PoolSlot {
-	int pool;
+	char* pool;
 	int lane;
-	Time time;
+	Time* time;
 };
 
 struct GymSlot {
 	int gym;
-	Time time;
+	Time* time;
 };
 
 struct Near {
@@ -37,11 +43,25 @@ struct Near {
 };
 
 struct Group {
-	string name;
+	char* name;
 	Age age;
 	int amountWater;
 	int parallelLanes;
 	int amountGym;
 };
+
+int stoi(char* str);
+
+map<int,char*> splitAndRemoveComments(string str);
+
+Day toDay (char* dayStr);
+
+pair<int, PoolSlot**> toPoolSlot (map<int, char*> line);
+
+PoolSlot* poolSlot(Day day, int hour, int lane, char* pool);
+
+pair<int, PoolSlot**> append(pair<int, PoolSlot**> first, pair<int, PoolSlot**> second);
+
+void printPool(PoolSlot* poolSlot);
 
 #endif /* SWIMPLAN_H_ */

@@ -6,10 +6,214 @@
 // Description : Hello World in C++, Ansi-style
 //============================================================================
 
-#include <iostream>
+
 #include "../h/SwimPlan.h"
+#include "../h/Constants.h"
+
+Day toDay (char* dayStr)
+{
+
+	if (strcmp(dayStr, "Mo") == 0)
+	{
+		return Mo;
+	}
+	else if (strcmp(dayStr, "Di") == 0)
+	{
+		return Di;
+	}
+	else if (strcmp(dayStr, "Mi") == 0)
+	{
+		return Mi;
+	}
+	else if (strcmp(dayStr, "Do") == 0)
+	{
+		return Do;
+	}
+	else if (strcmp(dayStr, "Fr") == 0)
+	{
+		return Fr;
+	}
+	else if (strcmp(dayStr, "Sa") == 0)
+	{
+		return Sa;
+	}
+	else if (strcmp(dayStr, "So") == 0)
+	{
+		return So;
+	}
+	else
+	{
+		throw "not a Day ";
+	}
+}
+
+string fromDay(Day day) {
+	switch (day) {
+		case Mo:
+			return "Mo";
+		case Di:
+			return "Di";
+		case Mi:
+			return "Mi";
+		case Do:
+			return "Do";
+		case Fr:
+			return "Fr";
+		case Sa:
+			return "Sa";
+		case So:
+			return "So";
+		default:
+			return "unknown";
+	}
+}
+
+pair<int, PoolSlot**> toPoolSlot (map<int, char*> line, char* pool) {
+	// 0 Bahn 1 Tag 2 von 3 bis
+
+	Day day = toDay(line[1]);
+
+	int from = atoi(line[2]);
+	int to = atoi(line[3]);
+	int lane = atoi(line[0]);
+
+
+	pair<int, PoolSlot**> result(to-from, (PoolSlot**) calloc((to-from), sizeof(PoolSlot*)));
+
+	for (int i = from; i < to; i++) {
+		PoolSlot* slot = poolSlot(day, i, lane, pool);
+		result.second[i-from] = slot;
+	}
+
+	return result;
+}
+
+PoolSlot* poolSlot(Day day, int hour, int lane, char* pool) {
+	PoolSlot* slot = (PoolSlot*) malloc(sizeof(PoolSlot));
+	slot -> lane = lane;
+	slot -> pool = pool;
+	Time* time = (Time*) malloc(sizeof(Time));
+	time -> day = day;
+	time -> hour = hour;
+	slot -> time = time;
+	return slot;
+}
+
+map<int,char*> splitAndRemoveComments(string str) {
+	char* s = (char*) calloc(32, sizeof(char));
+	int sizeOfS = 0;
+	map<int,char*> result;
+	int count = 0;
+	char c;
+	for (unsigned int i = 0; i < str.length(); ++i)
+	{
+		c = str.at(i);
+		switch (c) {
+		case ' ':
+			if (s[0] != '\0')
+			{
+				if (strcmp(s, COMMENT) == 0) {
+					return result;
+				}
+			    result[count] = s;
+			    s = (char*) calloc(32,sizeof(char));
+			    sizeOfS = 0;
+			    count++;
+			}
+		    break;
+		default:
+			//s = (char*) realloc(s, (sizeOfS+1) * sizeof(char));
+			s[sizeOfS] = c;
+			sizeOfS++;
+		}
+	}
+	result[count] = s;
+	return result;
+}
+
+void printPool(PoolSlot* poolSlot) {
+	cout << poolSlot -> pool << " "
+	     << fromDay(poolSlot -> time -> day) << " "
+		 << poolSlot -> time -> hour << " "
+		 << poolSlot -> lane << endl;
+}
+
+pair<int, PoolSlot**> append(pair<int, PoolSlot**> first, pair<int, PoolSlot**> second) {
+	if (first.first == 0)
+		return second;
+
+	first.first += second.first;
+	first.second = (PoolSlot**) realloc(first.second, first.first * sizeof (PoolSlot*));
+
+	for (int i = 0; i < second.first; i++) {
+		first.second[first.first - second.first + i] = second.second[i];
+	}
+
+	// free second
+
+	return first;
+}
 
 int main() {
-	cout << "!!!Hello World!!!" << endl; // prints !!!Hello World!!!
+
+	string line;
+	ifstream file ("testFiles/testData1");
+	map<int,char*> m;
+
+	int state;
+
+	char* building;
+
+	pair<int, PoolSlot**> pools(0,NULL);
+	pair<int, PoolSlot**> lineRes(0,NULL);
+	int lineNumber = 0;
+
+	try {
+	if (file.is_open())
+	{
+		while ( getline(file,line))
+		{
+			lineNumber++;
+			m = splitAndRemoveComments(line);
+			if (m.size() <= 0)
+				continue;
+
+			if (strcmp(m[0], POOLTOKEN) == 0)
+			{ // starting new pool section
+				state = POOLSTATE;
+				building = m[1];
+			}
+			else if (strcmp(m[0],GYMTOKEN) == 0)
+			{ // starting a new gym section
+				state = GYMSTATE;
+				building = m[1];
+			}
+			else
+			{ // reading train time
+
+				switch (state) {
+				case POOLSTATE: // reading lane
+					lineRes = toPoolSlot(m,building);
+					pools = append(pools, lineRes);
+					break;
+				default:
+					break;
+				}
+			}
+		}
+		file.close();
+	}
+	else
+	{
+		cout << "file not open" << endl;
+	}
+	} catch (char const* e) {
+		cerr << e << endl;
+	}
+
+	for (int i = 0; i < pools.first; i++) {
+		printPool(pools.second[i]);
+	}
+
 	return 0;
 }
