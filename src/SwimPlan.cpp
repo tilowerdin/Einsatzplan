@@ -10,6 +10,12 @@
 #include "../h/SwimPlan.h"
 #include "../h/Constants.h"
 
+#include <string.h>
+#include <stdlib.h>
+#include <iostream>
+#include <fstream>
+
+
 Day toDay (char* dayStr)
 {
 
@@ -68,7 +74,7 @@ string fromDay(Day day) {
 	}
 }
 
-pair<int, PoolSlot**> toPoolSlot (map<int, char*> line, char* pool) {
+SlotArray<PoolSlot> toPoolSlot (map<int, char*> line, char* pool) {
 
 	Day day = toDay(line[COLDAY]);
 
@@ -77,26 +83,30 @@ pair<int, PoolSlot**> toPoolSlot (map<int, char*> line, char* pool) {
 	int lane = atoi(line[COLLANE]);
 
 
-	pair<int, PoolSlot**> result(to-from, (PoolSlot**) calloc((to-from), sizeof(PoolSlot*)));
+	SlotArray<PoolSlot> result;
+	result.count = to - from;
+	result.slots = (PoolSlot**) calloc((to-from), sizeof(PoolSlot*));
 
 	for (int i = from; i < to; i++) {
 		PoolSlot* slot = poolSlot(day, i, lane, pool);
-		result.second[i-from] = slot;
+		result.slots[i-from] = slot;
 	}
 
 	return result;
 }
 
-pair<int, GymSlot**> toGymSlot (map<int, char*> line, char* label) {
+SlotArray<GymSlot> toGymSlot (map<int, char*> line, char* label) {
     Day day = toDay(line[COLDAY]);
     int from = atoi(line[COLFROM]);
     int to = atoi(line[COLTO]);
 
-    pair<int, GymSlot**> result(to-from, (GymSlot**) calloc((to-from), sizeof(GymSlot*)));
+    SlotArray<GymSlot> result;
+    result.count = to-from;
+    result.slots = (GymSlot**) calloc((to-from), sizeof(GymSlot*));
 
     for(int i = from; i < to; i++) {
     	GymSlot* slot = gymSlot(day,i,label);
-    	result.second[i-from] = slot;
+    	result.slots[i-from] = slot;
     }
 
     return result;
@@ -106,7 +116,7 @@ pair<int, GymSlot**> toGymSlot (map<int, char*> line, char* label) {
 PoolSlot* poolSlot(Day day, int hour, int lane, char* pool) {
 	PoolSlot* slot = (PoolSlot*) malloc(sizeof(PoolSlot));
 	slot -> lane = lane;
-	slot -> pool = pool;
+	slot -> label = pool;
 	Time* time = (Time*) malloc(sizeof(Time));
 	time -> day = day;
 	time -> hour = hour;
@@ -116,7 +126,7 @@ PoolSlot* poolSlot(Day day, int hour, int lane, char* pool) {
 
 GymSlot* gymSlot(Day day, int hour, char* label) {
 	GymSlot* slot = (GymSlot*) malloc(sizeof(GymSlot));
-	slot -> gym = label;
+	slot -> label = label;
 	Time* time = (Time*) malloc(sizeof(Time));
 	time -> day = day;
 	time -> hour = hour;
@@ -157,51 +167,82 @@ map<int,char*> splitAndRemoveComments(string str) {
 	return result;
 }
 
-void printPool(PoolSlot* poolSlot) {
-	cout << poolSlot -> pool << " "
-	     << fromDay(poolSlot -> time -> day) << " "
-		 << poolSlot -> time -> hour << " "
-		 << poolSlot -> lane << endl;
-}
 
-void printGym(GymSlot* gymSlot) {
-	cout << gymSlot -> gym << " "
-	     << fromDay(gymSlot -> time -> day) << " "
-		 << gymSlot -> time -> hour << endl;
-}
 
-pair<int, PoolSlot**> append(pair<int, PoolSlot**> first, pair<int, PoolSlot**> second) {
-	if (first.first == 0)
-		return second;
-
-	first.first += second.first;
-	first.second = (PoolSlot**) realloc(first.second, first.first * sizeof (PoolSlot*));
-
-	for (int i = 0; i < second.first; i++) {
-		first.second[first.first - second.first + i] = second.second[i];
+template <typename A>
+void SlotArray<A>::append(SlotArray<A> newSlots) {
+	if (count == 0) {
+		count = newSlots.count;
+		slots = newSlots.slots;
+		return;
 	}
 
-	// free second
+	count += newSlots.count;
+	slots = (A**) realloc(slots, count * sizeof(A));
 
-	return first;
-}
 
-pair<int, GymSlot**> append(pair<int, GymSlot**> first, pair<int, GymSlot**> second) {
-	if (first.first == 0)
-		return second;
-
-	first.first += second.first;
-	first.second = (GymSlot**) realloc(first.second, first.first * sizeof (GymSlot*));
-
-	for (int i = 0; i < second.first; i++) {
-		first.second[first.first - second.first + i] = second.second[i];
+	for (int i = 0; i < newSlots.count; i++) {
+		slots[count - newSlots.count + i] = newSlots.slots[i];
 	}
-
-	// free second
-
-	return first;
 }
 
+void Slot::print() {
+	cout << label << " "
+		 << fromDay(time -> day) << " "
+		 << time -> hour << endl;
+}
+
+void PoolSlot::print() {
+	cout << label << " "
+		 << fromDay(time -> day) << " "
+		 << time -> hour << " "
+		 << lane << endl;
+}
+
+Group* group(char* name, Age age, int water, int lanes, int gym) {
+	Group* res = (Group*) malloc(sizeof(Group));
+	res -> name = name;
+	res -> age = age;
+	res -> amountWater = water;
+	res -> parallelLanes = lanes;
+	res -> amountGym = gym;
+	return res;
+}
+
+Age toAge(char* str) {
+	if (strcmp(str,CHILDREN) == 0) {
+		return Kind;
+	}
+	else if (strcmp(str,YOUTH) == 0) {
+		return Jugend;
+	}
+	else if (strcmp(str,OLD) == 0) {
+		return AlterSack;
+	}
+	else
+		throw "not an age";
+}
+
+string fromAge(Age age) {
+	switch (age) {
+		case Kind:
+			return CHILDREN;
+		case Jugend:
+			return YOUTH;
+		case AlterSack:
+			return OLD;
+		default:
+			throw "not an age";
+	}
+}
+
+void Group::print() {
+	cout << name << " "
+		 << fromAge(age) << " "
+		 << amountWater << " "
+		 << parallelLanes << " "
+		 << amountGym << endl;
+}
 
 int main() {
 
@@ -213,11 +254,19 @@ int main() {
 
 	char* building;
 
-	pair<int, PoolSlot**> pools(0,NULL);
-	pair<int, PoolSlot**> lineRes(0,NULL);
+	SlotArray<PoolSlot> pools;
+	SlotArray<PoolSlot> lineRes;
 
-	pair<int, GymSlot**> gyms(0,NULL);
-	pair<int, GymSlot**> lineGyms(0,NULL);
+	SlotArray<GymSlot> gyms;
+	SlotArray<GymSlot> lineGyms;
+
+	// wie verwalten wir gebäude, die nahe bei einander sind?
+	map<string,string> nearBuildings;
+
+	Group** groups = (Group**) calloc(64,sizeof(Group*));
+	int groupCount = 0;
+	Group* g;
+
 	int lineNumber = 0;
 
 	try {
@@ -240,17 +289,38 @@ int main() {
 				state = GYMSTATE;
 				building = m[1];
 			}
+			else if (strcmp(m[0],NEARTOKEN) == 0)
+			{ // starting a near section
+				state = NEARSTATE;
+			}
+			else if (strcmp(m[0],GROUPTOKEN) == 0)
+			{ // starting a group section
+				state = GROUPSTATE;
+			}
 			else
 			{ // reading train time
 
 				switch (state) {
 				case POOLSTATE: // reading lane
 					lineRes = toPoolSlot(m,building);
-					pools = append(pools, lineRes);
+					pools.append(lineRes);
 					break;
-				case GYMSTATE: // reading
+				case GYMSTATE: // reading gym
 					lineGyms = toGymSlot(m,building);
-					gyms = append(gyms, lineGyms);
+					gyms.append(lineGyms);
+					break;
+				case NEARSTATE: // reading near
+					nearBuildings[m[0]] = m[1];
+					nearBuildings[m[1]] = m[0];
+					break;
+				case GROUPSTATE:
+					g = group( m[COLNAME]
+							 , toAge(m[COLAGE])
+							 , atoi(m[COLWATER])
+							 , atoi(m[COLLANES])
+							 , atoi(m[COLGYM]));
+					groups[groupCount] = g;
+					groupCount++;
 					break;
 				default:
 					break;
@@ -267,12 +337,18 @@ int main() {
 		cerr << e << endl;
 	}
 
-	for (int i = 0; i < gyms.first; i++) {
-		printGym(gyms.second[i]);
+	for (int i = 0; i < gyms.count; i++) {
+		gyms.slots[i] -> print();
 	}
 
-	for (int i = 0; i < pools.first; i++) {
-		printPool(pools.second[i]);
+	for (int i = 0; i < pools.count; i++) {
+		pools.slots[i] -> print();
+	}
+
+	cout << nearBuildings.size() << endl;
+
+	for(int i = 0; i < groupCount; i++) {
+		groups[i] -> print();
 	}
 
 	return 0;
