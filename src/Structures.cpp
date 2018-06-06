@@ -142,10 +142,69 @@ bool Group::add(PoolSlot* slot) {
 	return true;
 }
 
+bool Group::add(GymSlot* slot) {
+	// check age constraint
+	switch (age) {
+	case Kind: // children must not train after maxTimeChild
+		if (slot -> time -> hour >= maxTimeChild)
+			return false;
+		break;
+	case Jugend: // youth must not train after maxTimeYouth
+		if (slot -> time -> hour >= maxTimeYouth)
+			return false;
+		break;
+	case AlterSack: // old people train whenever they want
+		break;
+	default:
+		break;
+	}
+
+	// check amount gym
+	if (amountGym <= gyms.count)
+		// if the group doesn't need any slots anymore
+		return false;
+
+	// check days
+	// at this point we need to check that the new slot is not at a day
+	// we already have a training session
+	for (int i = 0; i < gyms.count; i++) {
+		if(gyms.arr[i] -> time -> day == slot -> time -> day){
+			return false;
+		}
+	}
+
+	// check that there is a water session near this gym session
+	bool possible = false;
+	for (int i = 0; i < pools.count; i++) {
+		if(slot -> time -> day == pools.arr[i] -> time -> day
+		   && abs(slot -> time -> hour - pools.arr[i] -> time -> hour) <= 1) {
+			possible = true;
+		}
+	}
+	if(!possible)
+		return false;
+
+	// TODO: do we need to check more?
+	// i think now we can add the slot
+	gyms.arr[gyms.count] = slot;
+	gyms.count++;
+	return true;
+
+}
+
 void Group::remove(PoolSlot* slot) {
 	if (pools.arr[pools.count-1] == slot) {
 		pools.arr[pools.count-1] = NULL;
 		pools.count--;
+	}
+	else
+		throw "that's not possible";
+}
+
+void Group::remove(GymSlot* slot) {
+	if (gyms.arr[gyms.count-1] == slot) {
+		gyms.arr[gyms.count-1] == NULL;
+		gyms.count--;
 	}
 	else
 		throw "that's not possible";
@@ -160,6 +219,10 @@ string Group::toString() {
 
 	for (int i = 0; i < pools.count; i++) {
 		res += pools.arr[i] -> toString();
+	}
+
+	for (int i = 0; i < gyms.count; i++) {
+		res += gyms.arr[i] -> toString();
 	}
 
 	return res;

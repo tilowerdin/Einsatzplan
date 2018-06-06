@@ -89,6 +89,7 @@ struct Group {
 	bool add(GymSlot* slot);
 
 	void remove(PoolSlot* slot);
+	void remove(GymSlot* slot);
 };
 
 string fromAge(Age age);

@@ -1,11 +1,11 @@
 all: prog
 	rm *o
 
-prog: Constants.o Conversion.o Structures.o SwimPlan.o
-	g++ Constants.o Conversion.o Structures.o SwimPlan.o -o prog
+prog: Constants.o Conversion.o Structures.o Einsatzplan.o
+	g++ Constants.o Conversion.o Structures.o Einsatzplan.o -o prog
 
 SwimPlan.o: Constants.o Conversion.o Structures.o
-	g++ -c src/SwimPlan.cpp
+	g++ -c src/Einsatzplan.cpp
 
 Structures.o: Constants.o Conversion.o
 	g++ -c src/Structures.cpp

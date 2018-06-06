@@ -29,9 +29,11 @@ GymSlot* gymSlot(Day day, int hour, char* label);
 
 Group* group(char* name, Age age, int water, int lanes, int gym);
 
-void dfs(int from, bool* taken, MyArray<PoolSlot> pools, MyArray<Group> groups);
+void dfs(int from, bool* taken, MyArray<PoolSlot> pools, MyArray<Group> groups, MyArray<GymSlot> gyms);
 
-bool finish(bool* taken, int count, MyArray<Group> groups);
+bool finish(bool onlyWater,bool* taken, int count, MyArray<Group> groups);
+
+void dfs(int from, bool* taken, MyArray<GymSlot> gyms, MyArray<Group> groups);
 
 bool* falseArray(int count);
 

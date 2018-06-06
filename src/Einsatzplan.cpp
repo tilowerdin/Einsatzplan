@@ -6,7 +6,7 @@
 // Description : Hello World in C++, Ansi-style
 //============================================================================
 
-#include "../h/SwimPlan.h"
+#include "../h/Einsatzplan.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -98,9 +98,9 @@ Group* group(char* name, Age age, int water, int lanes, int gym) {
 	return res;
 }
 
-void dfs(int from, bool* taken, MyArray<PoolSlot> pools, MyArray<Group> groups) {
-	if (finish(taken, pools.count, groups)) {
-		printSolutionToFile(groups);
+void dfs(int from, bool* taken, MyArray<PoolSlot> pools, MyArray<Group> groups, MyArray<GymSlot> gyms) {
+	if (finish(true, taken, pools.count, groups)) {
+		dfs(0, falseArray(gyms.count),gyms,groups);
 		return;
 	}
 
@@ -113,7 +113,7 @@ void dfs(int from, bool* taken, MyArray<PoolSlot> pools, MyArray<Group> groups) 
 				taken[i] = true;
 
 				// before going deeper try to find parallelLanes -1
-				// other lanes
+				// other lanes -> makes it a lot faster
 				int takenIndices[groups.arr[j]->parallelLanes];
 				for(int n = 0; n < groups.arr[j]->parallelLanes; n++) {
 					takenIndices[n] = -1;
@@ -137,8 +137,9 @@ void dfs(int from, bool* taken, MyArray<PoolSlot> pools, MyArray<Group> groups) 
 
 				// if we were able to take parallelLanes many lanes
 				if (takenIndices[groups.arr[j]->parallelLanes-1] > -1)
-					dfs(i, taken, pools, groups);
+					dfs(i, taken, pools, groups, gyms);
 
+				//backtracking
 				for (int k = groups.arr[j]->parallelLanes-1; k >= 0; k--) {
 					if (takenIndices[k] != -1) {
 						taken[takenIndices[k]] = false;
@@ -150,7 +151,7 @@ void dfs(int from, bool* taken, MyArray<PoolSlot> pools, MyArray<Group> groups) 
 	}
 }
 
-bool finish(bool* taken, int count, MyArray<Group> groups) {
+bool finish(bool onlyWater, bool* taken, int count, MyArray<Group> groups) {
 	bool finish1 = true;
 
 	for (int i = 0; i < count; i++) {
@@ -163,9 +164,35 @@ bool finish(bool* taken, int count, MyArray<Group> groups) {
 		finish2 &= ( groups.arr[i] -> amountWater
 				   * groups.arr[i] -> parallelLanes
 				   == groups.arr[i] -> pools.count);
+		if (!onlyWater)
+			finish2 &= ( groups.arr[i] -> amountGym
+			           == groups.arr[i] -> gyms.count);
 	}
 
 	return finish1 || finish2;
+}
+// TODO add remove GymSlot to Group
+void dfs(int from, bool* taken, MyArray<GymSlot> gyms, MyArray<Group> groups) {
+	if(finish(false, taken, gyms.count, groups)) {
+		printSolutionToFile(groups);
+		return;
+	}
+
+	for (int i = from; i < gyms.count; i++) {
+		if (taken[i])
+			continue;
+
+		for(int j = 0; j < groups.count; j++) {
+			if (groups.arr[j] -> add(gyms.arr[i])) {
+				taken[i] = true;
+
+				dfs(i, taken, gyms, groups);
+
+				taken[i] = false;
+				groups.arr[j] -> remove(gyms.arr[i]);
+			}
+		}
+	}
 }
 
 bool* falseArray(int count) {
@@ -222,14 +249,13 @@ int main(int argc, char* argv[]) {
 		outputDir = argv[2];
 	}
 
-	if(stat(outputDir, &st) == -1) {
+	if(stat(outputDir, &st) == -1){
 		#ifdef _WIN32
 		mkdir(outputDir);
 		#else
 		mkdir(outputDir, 0775);
 		#endif
 	}
-
 
 
 	string line;
@@ -324,7 +350,7 @@ int main(int argc, char* argv[]) {
 		gs.count = groupCount;
 		gs.arr = groups;
 
-		dfs(0, falseArray(pools.count), pools, gs);
+		dfs(0, falseArray(pools.count), pools, gs, gyms);
 
 		if (sols > 0)
 			cout << "found" << endl;
