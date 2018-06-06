@@ -174,6 +174,7 @@ bool* falseArray(int count) {
 }
 
 int sols = 0;
+char* outputDir = "out";
 
 void printSolutionToFile(MyArray<Group> groups) {
 	sols++;
@@ -182,7 +183,7 @@ void printSolutionToFile(MyArray<Group> groups) {
 		throw "finished";
 
 	char filename[16];
-	sprintf(filename, "sol/sol%d", sols);
+	sprintf(filename, "%s/sol%d", outputDir,sols);
 	ofstream output (filename);
 
 
@@ -194,20 +195,40 @@ void printSolutionToFile(MyArray<Group> groups) {
 
 }
 
+const string usage = "prog input [output]";
+
+int main(int argc, char* argv[]) {
+
+	if (argc < 2) {
+		cerr << usage << endl;
+		return 0;
+	}
+
+	char* filename = "testFiles/testData2";
+
+	filename = argv[1];
+
+	if (argc > 2) {
+		int i = 0;
+		bool lastSlash = false;
+		while(argv[2][i] != '\0') {
+			if(argv[2][i] == '/') {
+				lastSlash = true;
+			}
+			i++;
+		}
+		if (lastSlash)
+			argv[2][i-1] = '\0';
+		outputDir = argv[2];
+	}
+
+	if(stat(outputDir, &st) == -1)
+		mkdir(outputDir, 0775);
 
 
-int main() {
 
-	if(stat("sol/", &st) == -1)
-		mkdir("sol/", 0775);
-
-//	ofstream file1("sol/file");
-//	file1 << "content" << endl;
-//	file1.close();
-//
-//	return 0;
 	string line;
-	ifstream file ("testFiles/testData2");
+	ifstream file (filename);
 	map<int,char*> m;
 
 	int state;
