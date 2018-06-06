@@ -222,8 +222,13 @@ int main(int argc, char* argv[]) {
 		outputDir = argv[2];
 	}
 
-	if(stat(outputDir, &st) == -1)
+	if(stat(outputDir, &st) == -1) {
+		#ifdef _WIN32
+		mkdir(outputDir);
+		#else
 		mkdir(outputDir, 0775);
+		#endif
+	}
 
 
 
