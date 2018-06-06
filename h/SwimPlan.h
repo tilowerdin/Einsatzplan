@@ -30,13 +30,13 @@ struct Slot {
 	char* label;
 	Time* time;
 
-	void print();
+	string toString();
 };
 
 struct PoolSlot : Slot {
 	int lane;
 
-	void print();
+	string toString();
 };
 
 struct GymSlot : Slot {
@@ -69,7 +69,7 @@ struct Group {
 	MyArray<GymSlot> gyms;
 	MyArray<PoolSlot> pools;
 
-	void print();
+	string toString();
 
 	bool add(PoolSlot* slot);
 	bool add(GymSlot* slot);
@@ -98,10 +98,12 @@ Age toAge(char* str);
 
 string fromAge(Age age);
 
-bool dfs(bool* taken, MyArray<PoolSlot> pools, MyArray<Group> groups);
+void dfs(int from, bool* taken, MyArray<PoolSlot> pools, MyArray<Group> groups);
 
 bool finish(bool* taken, int count, MyArray<Group> groups);
 
 bool* falseArray(int count);
+
+void printSolutionToFile(MyArray<Group> groups);
 
 #endif /* SWIMPLAN_H_ */

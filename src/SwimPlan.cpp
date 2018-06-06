@@ -14,6 +14,13 @@
 #include <stdlib.h>
 #include <iostream>
 #include <fstream>
+#include <cmath>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+struct stat st = {0};
+
 
 Day toDay (char* dayStr)
 {
@@ -181,17 +188,72 @@ void MyArray<A>::append(MyArray<A> newSlots) {
 	}
 }
 
-void Slot::print() {
-	cout << label << " "
-		 << fromDay(time -> day) << " "
-		 << time -> hour << endl;
+char* itoa(int i) {
+	int digits;
+	if (i == 0)
+		digits = 1;
+	else
+		digits = log10(i) + 1;
+
+	char* str = (char*) calloc(digits+1, sizeof(char));
+	for (int j = 0; j < digits; j++) {
+		int a = digits -j-1;
+		int b = pow(10, a);
+		int c = i / b;
+		int d = c % 10;
+		switch (d) {
+		case 0:
+			str[j] = '0';
+			break;
+		case 1:
+			str[j] = '1';
+			break;
+		case 2:
+			str[j] = '2';
+			break;
+		case 3:
+			str[j] = '3';
+			break;
+		case 4:
+			str[j] = '4';
+			break;
+		case 5:
+			str[j] = '5';
+			break;
+		case 6:
+			str[j] = '6';
+			break;
+		case 7:
+			str[j] = '7';
+			break;
+		case 8:
+			str[j] = '8';
+			break;
+		case 9:
+			str[j] = '9';
+			break;
+		default:
+			throw "error";
+		}
+	}
+
+	return str;
 }
 
-void PoolSlot::print() {
-	cout << label << " "
-		 << fromDay(time -> day) << " "
-		 << time -> hour << " "
-		 << lane << endl;
+string Slot::toString() {
+	string res = string(label==NULL ? "" : label) + " "
+		 + fromDay(time -> day) + " "
+		 + string(itoa(time -> hour)) + "\n";
+
+	return res;
+}
+
+string PoolSlot::toString() {
+	string res = string(label==NULL ? "" : label) + " "
+		 + fromDay(time -> day) + " "
+		 + string(itoa(time -> hour)) + " "
+		 + string(itoa(lane)) + "\n";
+	return res;
 }
 
 Group* group(char* name, Age age, int water, int lanes, int gym) {
@@ -238,15 +300,18 @@ string fromAge(Age age) {
 	}
 }
 
-void Group::print() {
-	cout << name << " "
-		 << fromAge(age) << " "
-		 << amountWater << " "
-		 << parallelLanes << " "
-		 << amountGym << endl;
+string Group::toString() {
+	string res = string(name == NULL ? "" : name) + " "
+		 + fromAge(age) + " "
+		 + string(itoa(amountWater)) + " "
+		 + string(itoa(parallelLanes)) + " "
+		 + string(itoa(amountGym)) + "\n";
+
 	for (int i = 0; i < pools.count; i++) {
-		pools.arr[i] -> print();
+		res += pools.arr[i] -> toString();
 	}
+
+	return res;
 }
 
 bool Group::add(PoolSlot* slot) {
@@ -370,27 +435,56 @@ void Group::remove(PoolSlot* slot) {
 		throw "that's not possible";
 }
 
-bool dfs(bool* taken, MyArray<PoolSlot> pools, MyArray<Group> groups) {
-	if (finish(taken, pools.count, groups))
-		return true;
+void dfs(int from, bool* taken, MyArray<PoolSlot> pools, MyArray<Group> groups) {
+	if (finish(taken, pools.count, groups)) {
+		printSolutionToFile(groups);
+		return;
+	}
 
-	for (int i = 0; i < pools.count; i++) {
+	for (int i = from; i < pools.count; i++) {
 		if (taken[i])
 			continue;
 
 		for(int j = 0; j < groups.count; j++) {
 			if (groups.arr[j] -> add(pools.arr[i])) {
 				taken[i] = true;
-				if (dfs(taken, pools, groups))
-					return true;
 
-				taken[i] = false;
-				groups.arr[j] -> remove(pools.arr[i]);
+				// before going deeper try to find parallelLanes -1
+				// other lanes
+				int takenIndices[groups.arr[j]->parallelLanes];
+				for(int n = 0; n < groups.arr[j]->parallelLanes; n++) {
+					takenIndices[n] = -1;
+				}
+				takenIndices[0] = i;
+
+				for (int k = 1; k < groups.arr[j]->parallelLanes; k++) {
+					for (int m = from; m < pools.count; m++) {
+						if (taken[m])
+							continue;
+
+						if (groups.arr[j] -> add(pools.arr[m])) {
+							takenIndices[k] = m;
+							taken[m] = true;
+							break;
+						}
+					}
+					if (takenIndices[k] == -1)
+						break;
+				}
+
+				// if we were able to take parallelLanes many lanes
+				if (takenIndices[groups.arr[j]->parallelLanes-1] > -1)
+					dfs(i, taken, pools, groups);
+
+				for (int k = groups.arr[j]->parallelLanes-1; k >= 0; k--) {
+					if (takenIndices[k] != -1) {
+						taken[takenIndices[k]] = false;
+						groups.arr[j] -> remove(pools.arr[takenIndices[k]]);
+					}
+				}
 			}
 		}
 	}
-
-	return false;
 }
 
 bool finish(bool* taken, int count, MyArray<Group> groups) {
@@ -416,10 +510,41 @@ bool* falseArray(int count) {
 	return res;
 }
 
+int sols = 0;
+
+void printSolutionToFile(MyArray<Group> groups) {
+	sols++;
+
+	if (sols > MAXSOLUTIONS)
+		throw "finished";
+
+	char filename[16];
+	sprintf(filename, "sol/sol%d", sols);
+	ofstream output (filename);
+
+
+	for(int i = 0; i < groups.count; i++) {
+		output << groups.arr[i] -> toString();
+	}
+
+	output.close();
+
+}
+
 int main() {
 
+
+
+	if(stat("sol/", &st) == -1)
+		mkdir("sol/", 0775);
+
+//	ofstream file1("sol/file");
+//	file1 << "content" << endl;
+//	file1.close();
+//
+//	return 0;
 	string line;
-	ifstream file ("testFiles/testData1");
+	ifstream file ("testFiles/testData2");
 	map<int,char*> m;
 
 	int state;
@@ -510,14 +635,12 @@ int main() {
 		gs.count = groupCount;
 		gs.arr = groups;
 
-		if (dfs(falseArray(pools.count), pools, gs))
+		dfs(0, falseArray(pools.count), pools, gs);
+
+		if (sols > 0)
 			cout << "found" << endl;
 		else
 			cout << "not found" << endl;
-
-		for(int i = 0; i < groupCount; i++) {
-			groups[i] -> print();
-		}
 
 	} catch (char const* e) {
 		cerr << e << endl;
