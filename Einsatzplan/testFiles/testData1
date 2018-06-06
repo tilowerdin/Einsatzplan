@@ -1,0 +1,18 @@
+>Schwimmhalle Freiberger -- einlesen einer Schwimmhalle : Tag von bis Bahn
+Mo 15 20 7
+Mo 15 20 8
+Di 15 20 7
+Di 15 20 8
+Mi 15 20 7
+Mi 15 20 8
+>Schwimmhalle Prohlis
+Mo 15 17 1
+>Athletik Athletik -- einlesen eines Athletikraums : Tag von bis
+Mo 12 14
+Di 18 20
+>Nahe -- welche Gebäude befinden sich nahe zu einander?
+Freiberger Athletik
+>Gruppe -- Name Alter Wasser Bahnen Athletik
+Moschi Kind 3 2 1
+Heiko Jugend 2 1 1
+Tut AlterSack 1 1 0
