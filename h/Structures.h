@@ -86,7 +86,7 @@ struct Group {
 	string toString();
 
 	bool add(PoolSlot* slot);
-	bool add(GymSlot* slot);
+	bool add(GymSlot* slot, map<string,string> nearBuildings);
 
 	void remove(PoolSlot* slot);
 	void remove(GymSlot* slot);

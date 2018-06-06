@@ -21,6 +21,7 @@
 
 struct stat st = {0};
 
+map<string,string> nearBuildings;
 
 MyArray<PoolSlot> toPoolSlot (map<int, char*> line, char* pool) {
 
@@ -183,7 +184,7 @@ void dfs(int from, bool* taken, MyArray<GymSlot> gyms, MyArray<Group> groups) {
 			continue;
 
 		for(int j = 0; j < groups.count; j++) {
-			if (groups.arr[j] -> add(gyms.arr[i])) {
+			if (groups.arr[j] -> add(gyms.arr[i],nearBuildings)) {
 				taken[i] = true;
 
 				dfs(i, taken, gyms, groups);
@@ -271,9 +272,6 @@ int main(int argc, char* argv[]) {
 
 	MyArray<GymSlot> gyms;
 	MyArray<GymSlot> lineGyms;
-
-	// wie verwalten wir gebäude, die nahe bei einander sind?
-	map<string,string> nearBuildings;
 
 	Group** groups = (Group**) calloc(64,sizeof(Group*));
 	int groupCount = 0;

@@ -142,7 +142,7 @@ bool Group::add(PoolSlot* slot) {
 	return true;
 }
 
-bool Group::add(GymSlot* slot) {
+bool Group::add(GymSlot* slot, map<string,string> nearBuildings) {
 	// check age constraint
 	switch (age) {
 	case Kind: // children must not train after maxTimeChild
@@ -176,7 +176,8 @@ bool Group::add(GymSlot* slot) {
 	// check that there is a water session near this gym session
 	bool possible = false;
 	for (int i = 0; i < pools.count; i++) {
-		if(slot -> time -> day == pools.arr[i] -> time -> day
+		if(nearBuildings[slot -> label].compare(pools.arr[i] -> label) == 0
+		   && slot -> time -> day == pools.arr[i] -> time -> day
 		   && abs(slot -> time -> hour - pools.arr[i] -> time -> hour) <= 1) {
 			possible = true;
 		}
