@@ -1,6 +1,6 @@
 # Einsatzplan Trainer
 
-## [ ] Aufgabenstellung 1
+- [ ] Aufgabenstellung 1
 
 * Schwimmhallen mit Bahnen und Zeiten
 * Turnhallen mit Zeiten
