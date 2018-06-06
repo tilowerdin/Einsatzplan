@@ -15,6 +15,7 @@
         * 4x Wasser, 1x Athletik
 * Wassertrainingszeiten nach Möglichkeit im Abstand von ein besser zwei Tagen
     * **Bei 3xWasser Mo,Mi,Fr? Bei 4xWasser?**
+    * betrachten wir erstmal nicht, da es vermutlich Mittwochs keine Zeit gibt, sodass es eh nur maximal für Gurppen mit zwei Zeiten infrage kommt. Ist allerdings nicht so schwer hinzuzufügen.
 * Altersklasse Kind muss bis 19 Uhr fertig sein
 * Altersklasse Jugend muss bis 20 Uhr fertig sein
 

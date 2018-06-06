@@ -12,41 +12,41 @@
 
 using namespace std;
 
-const int MAXSOLUTIONS = 10;
+#define MAXSOLUTIONS 10
 
 
-const char* POOLTOKEN = ">Schwimmhalle";
-const char* GYMTOKEN = ">Athletik";
-const char* NEARTOKEN = ">Nahe";
-const char* GROUPTOKEN = ">Gruppe";
-const char* COMMENT = "--";
+extern const char* POOLTOKEN;
+extern const char* GYMTOKEN;
+extern const char* NEARTOKEN;
+extern const char* GROUPTOKEN;
+extern const char* COMMENT;
 
 // age
-const char* CHILDREN = "Kind";
-const char* YOUTH = "Jugend";
-const char* OLD = "AlterSack";
+extern const char* CHILDREN;
+extern const char* YOUTH;
+extern const char* OLD;
 
-const int maxTimeChild = 19;
-const int maxTimeYouth = 20;
+extern const int maxTimeChild;
+extern const int maxTimeYouth;
 
 // reading pool and gym
 // lane need to be last since gym does not have a lane
-const int COLLANE = 3;
-const int COLDAY = 0;
-const int COLFROM = 1;
-const int COLTO = 2;
+extern const int COLLANE;
+extern const int COLDAY;
+extern const int COLFROM;
+extern const int COLTO;
 
 // reading groups
-const int COLNAME = 0;
-const int COLAGE = 1;
-const int COLWATER = 2;
-const int COLLANES = 3;
-const int COLGYM = 4;
+extern const int COLNAME;
+extern const int COLAGE;
+extern const int COLWATER;
+extern const int COLLANES;
+extern const int COLGYM;
 
 
-const int POOLSTATE = 1;
-const int GYMSTATE = 2;
-const int NEARSTATE = 3;
-const int GROUPSTATE = 4;
+#define POOLSTATE 1
+#define GYMSTATE 2
+#define NEARSTATE 3
+#define GROUPSTATE 4
 
 #endif /* CONSTANTS_H_ */
