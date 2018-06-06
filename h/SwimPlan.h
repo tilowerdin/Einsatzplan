@@ -20,6 +20,10 @@ enum Age { Kind, Jugend, AlterSack };
 struct Time {
 	int hour;
 	Day day;
+
+	bool equals(Time time) {
+		return hour == time.hour && day == time.day;
+	}
 };
 
 struct Slot {
@@ -39,16 +43,16 @@ struct GymSlot : Slot {
 };
 
 template <typename A>
-struct SlotArray {
+struct MyArray {
 	int count;
-	A** slots;
+	A** arr;
 
-	SlotArray<A>() {
+	MyArray<A>() {
 		count = 0;
-		slots = NULL;
+		arr = NULL;
 	}
 
-	void append(SlotArray<A> newSlots);
+	void append(MyArray<A> newSlots);
 };
 
 struct Near {
@@ -62,8 +66,16 @@ struct Group {
 	int amountWater;
 	int parallelLanes;
 	int amountGym;
+	MyArray<GymSlot> gyms;
+	MyArray<PoolSlot> pools;
 
 	void print();
+
+	bool add(PoolSlot* slot);
+	bool add(GymSlot* slot);
+
+	void remove(PoolSlot* slot);
+
 };
 
 int stoi(char* str);
@@ -72,9 +84,9 @@ map<int,char*> splitAndRemoveComments(string str);
 
 Day toDay (char* dayStr);
 
-SlotArray<PoolSlot> toPoolSlot (map<int, char*> line, char* pool);
+MyArray<PoolSlot> toPoolSlot (map<int, char*> line, char* pool);
 
-SlotArray<GymSlot> toGymSlot (map<int, char*> line, char* label);
+MyArray<GymSlot> toGymSlot (map<int, char*> line, char* label);
 
 PoolSlot* poolSlot(Day day, int hour, int lane, char* pool);
 
@@ -85,5 +97,11 @@ Group* group(char* name, Age age, int water, int lanes, int gym);
 Age toAge(char* str);
 
 string fromAge(Age age);
+
+bool dfs(bool* taken, MyArray<PoolSlot> pools, MyArray<Group> groups);
+
+bool finish(bool* taken, int count, MyArray<Group> groups);
+
+bool* falseArray(int count);
 
 #endif /* SWIMPLAN_H_ */

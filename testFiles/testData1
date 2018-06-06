@@ -1,12 +1,12 @@
 >Schwimmhalle Freiberger -- einlesen einer Schwimmhalle : Tag von bis Bahn
-Mo 15 18 7
-Mo 16 22 8
-Di 13 20 1
-Mi 20 22 7
-Mi 17 22 8
-Do 13 22 1
->Schwimmhalle Prohlis -- einlesen einer anderen Schwimmhalle
-Mo 13 15 2
+Mo 15 20 7
+Mo 15 20 8
+Di 15 20 7
+Di 15 20 8
+Mi 15 20 7
+Mi 15 20 8
+>Schwimmhalle Prohlis
+Mo 15 17 1
 >Athletik Athletik -- einlesen eines Athletikraums : Tag von bis
 Mo 12 14
 Di 18 20

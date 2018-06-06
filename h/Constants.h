@@ -39,4 +39,7 @@ const int COLLANES = 3;
 const int COLGYM = 4;
 
 
+const int maxTimeChild = 19;
+const int maxTimeYouth = 20;
+
 #endif /* CONSTANTS_H_ */
