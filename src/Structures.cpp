@@ -46,7 +46,7 @@ string PoolSlot::toString() {
 	return res;
 }
 
-bool Group::add(PoolSlot* slot, map<string,MyArray<Group> > trainer) {
+bool Group::add(PoolSlot* slot, map<string,MyArray<Group> > trainer, map<string,pair<int, Day*> > excludeDays) {
 	// check age constraint
 	switch (age) {
 	case Kind: // children must not train after maxTimeChild
@@ -61,6 +61,13 @@ bool Group::add(PoolSlot* slot, map<string,MyArray<Group> > trainer) {
 		break;
 	default:
 		break;
+	}
+
+	// check that the trainer did not exlude this day
+	pair<int, Day*> days = excludeDays[string(name)];
+	for (int i = 0; i < days.first; i++) {
+		if (days.second[i] == slot -> time -> day)
+			return false;
 	}
 
 	// check amount water

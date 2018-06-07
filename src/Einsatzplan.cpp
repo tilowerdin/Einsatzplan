@@ -23,6 +23,7 @@ struct stat st = {0};
 
 map<string,string> nearBuildings;
 map<string,MyArray<Group> > trainer;
+map<string,pair<int, Day*> > excludeTrainer;
 
 MyArray<PoolSlot> toPoolSlot (map<int, char*> line, char* pool) {
 
@@ -112,7 +113,7 @@ void dfs(int from, bool* taken, MyArray<PoolSlot> pools, MyArray<Group> groups, 
 
 		for(int j = 0; j < groups.count; j++) {
 
-			if (groups.arr[j] -> add(pools.arr[i], trainer)) {
+			if (groups.arr[j] -> add(pools.arr[i], trainer, excludeTrainer)) {
 				taken[i] = true;
 
 				// before going deeper try to find parallelLanes -1
@@ -128,7 +129,7 @@ void dfs(int from, bool* taken, MyArray<PoolSlot> pools, MyArray<Group> groups, 
 						if (taken[m])
 							continue;
 
-						if (groups.arr[j] -> add(pools.arr[m], trainer)) {
+						if (groups.arr[j] -> add(pools.arr[m], trainer, excludeTrainer)) {
 							takenIndices[k] = m;
 							taken[m] = true;
 							break;
@@ -229,6 +230,16 @@ void printSolutionToFile(MyArray<Group> groups) {
 
 const string usage = "prog input [output]";
 
+void exclude(map<int,char*> m) {
+	pair<int, Day*> days;
+	days.first = m.size()-1;
+	days.second = (Day*) calloc(m.size()-1, sizeof(Day));
+    for (unsigned int i = 1; i < m.size(); i++) {
+		days.second[i-1] = toDay(m[i]);
+	}
+	excludeTrainer[string(m[0])] = days;
+}
+
 int main(int argc, char* argv[]) {
 
 	if (argc < 2) {
@@ -281,6 +292,7 @@ int main(int argc, char* argv[]) {
 	int groupCount = 0;
 	Group* g;
 
+
 	int lineNumber = 0;
 
 	try {
@@ -311,6 +323,10 @@ int main(int argc, char* argv[]) {
 				{ // starting a group section
 					state = GROUPSTATE;
 				}
+				else if (strcmp(m[0],EXCLUDETOKEN) == 0)
+				{ // starting a exclude day for trainers section
+					state = EXCLUDESTATE;
+				}
 				else
 				{ // reading train time
 
@@ -336,6 +352,9 @@ int main(int argc, char* argv[]) {
 						groups[groupCount] = g;
 						groupCount++;
 						trainer[string(m[COLNAME])].add(g);
+						break;
+					case EXCLUDESTATE:
+						exclude(m);
 						break;
 					default:
 						break;

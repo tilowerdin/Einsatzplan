@@ -21,6 +21,7 @@ extern const char* GYMTOKEN;
 extern const char* NEARTOKEN;
 extern const char* GROUPTOKEN;
 extern const char* COMMENT;
+extern const char* EXCLUDETOKEN;
 
 // age
 extern const char* CHILDREN;
@@ -49,5 +50,6 @@ extern const int COLGYM;
 #define GYMSTATE 2
 #define NEARSTATE 3
 #define GROUPSTATE 4
+#define EXCLUDESTATE 5
 
 #endif /* CONSTANTS_H_ */

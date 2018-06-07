@@ -12,6 +12,7 @@ const char* GYMTOKEN = ">Athletik";
 const char* NEARTOKEN = ">Nahe";
 const char* GROUPTOKEN = ">Gruppe";
 const char* COMMENT = "--";
+const char* EXCLUDETOKEN = ">Trainerabwesenheit";
 
 // age
 const char* CHILDREN = "Kind";
