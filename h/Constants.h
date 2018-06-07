@@ -15,6 +15,7 @@ using namespace std;
 #define MAXSOLUTIONS 10
 #define DAYSPAUSE 2
 
+// token to be searched for in the input file
 extern const char* POOLTOKEN;
 extern const char* GYMTOKEN;
 extern const char* NEARTOKEN;
@@ -43,7 +44,7 @@ extern const int COLWATER;
 extern const int COLLANES;
 extern const int COLGYM;
 
-
+// states while reading the input file
 #define POOLSTATE 1
 #define GYMSTATE 2
 #define NEARSTATE 3

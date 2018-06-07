@@ -13,6 +13,7 @@
 
 #include <stddef.h>
 #include <string>
+#include <stdlib.h>
 
 using namespace std;
 
@@ -37,12 +38,25 @@ struct MyArray {
 		}
 
 		count += newSlots.count;
-		arr = (A**) realloc(arr, count * sizeof(A));
+		arr = (A**) realloc(arr, count * sizeof(A*));
 
 
 		for (int i = 0; i < newSlots.count; i++) {
 			arr[count - newSlots.count + i] = newSlots.arr[i];
 		}
+	}
+
+	void add(A* a) {
+		if (count == 0) {
+			count = 1;
+			arr = (A**) calloc(1, sizeof(A*));
+			arr[0] = a;
+			return;
+		}
+
+		count++;
+		arr = (A**) realloc(arr, count * sizeof(A*));
+		arr[count-1] = a;
 	}
 };
 
@@ -85,8 +99,8 @@ struct Group {
 
 	string toString();
 
-	bool add(PoolSlot* slot);
-	bool add(GymSlot* slot, map<string,string> nearBuildings);
+	bool add(PoolSlot* slot, map<string,MyArray<Group> > trainer);
+	bool add(GymSlot* slot, map<string,string> nearBuildings, map<string,MyArray<Group> > trainer);
 
 	void remove(PoolSlot* slot);
 	void remove(GymSlot* slot);

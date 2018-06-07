@@ -22,6 +22,7 @@
 struct stat st = {0};
 
 map<string,string> nearBuildings;
+map<string,MyArray<Group> > trainer;
 
 MyArray<PoolSlot> toPoolSlot (map<int, char*> line, char* pool) {
 
@@ -110,7 +111,8 @@ void dfs(int from, bool* taken, MyArray<PoolSlot> pools, MyArray<Group> groups, 
 			continue;
 
 		for(int j = 0; j < groups.count; j++) {
-			if (groups.arr[j] -> add(pools.arr[i])) {
+
+			if (groups.arr[j] -> add(pools.arr[i], trainer)) {
 				taken[i] = true;
 
 				// before going deeper try to find parallelLanes -1
@@ -126,7 +128,7 @@ void dfs(int from, bool* taken, MyArray<PoolSlot> pools, MyArray<Group> groups, 
 						if (taken[m])
 							continue;
 
-						if (groups.arr[j] -> add(pools.arr[m])) {
+						if (groups.arr[j] -> add(pools.arr[m], trainer)) {
 							takenIndices[k] = m;
 							taken[m] = true;
 							break;
@@ -184,7 +186,7 @@ void dfs(int from, bool* taken, MyArray<GymSlot> gyms, MyArray<Group> groups) {
 			continue;
 
 		for(int j = 0; j < groups.count; j++) {
-			if (groups.arr[j] -> add(gyms.arr[i],nearBuildings)) {
+			if (groups.arr[j] -> add(gyms.arr[i],nearBuildings, trainer)) {
 				taken[i] = true;
 
 				dfs(i, taken, gyms, groups);
@@ -333,6 +335,7 @@ int main(int argc, char* argv[]) {
 								 , atoi(m[COLGYM]));
 						groups[groupCount] = g;
 						groupCount++;
+						trainer[string(m[COLNAME])].add(g);
 						break;
 					default:
 						break;

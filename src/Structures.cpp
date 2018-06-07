@@ -10,6 +10,22 @@
 #include <string.h>
 #include <stdlib.h>
 
+bool trainerAvailable(char*, MyArray<Group> groups, Time* time) {
+	for (int i = 0; i < groups.count; i++) {
+		for (int j = 0; j < groups.arr[i] -> pools.count; j++) {
+			if (time->equals(*(groups.arr[i] -> pools.arr[j] -> time))) {
+				return false;
+			}
+		}
+		for (int j = 0; j < groups.arr[i] -> gyms.count; j++) {
+			if (time->equals(*(groups.arr[i] -> gyms.arr[j] -> time))) {
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
 bool Time::equals(Time time) {
 	return hour == time.hour && day == time.day;
 }
@@ -30,7 +46,7 @@ string PoolSlot::toString() {
 	return res;
 }
 
-bool Group::add(PoolSlot* slot) {
+bool Group::add(PoolSlot* slot, map<string,MyArray<Group> > trainer) {
 	// check age constraint
 	switch (age) {
 	case Kind: // children must not train after maxTimeChild
@@ -145,6 +161,12 @@ bool Group::add(PoolSlot* slot) {
 			return false;
 	}
 
+	// check that this trainer does not already have an event at this time
+	MyArray<Group> groups = trainer[string(name)];
+	if (groups.count > 1 && !trainerAvailable(name, groups, slot -> time)) {
+		return false;
+	}
+
 	// TODO: do we need to check more?
 	// i think now we can add the slot
 	pools.arr[pools.count] = slot;
@@ -152,7 +174,7 @@ bool Group::add(PoolSlot* slot) {
 	return true;
 }
 
-bool Group::add(GymSlot* slot, map<string,string> nearBuildings) {
+bool Group::add(GymSlot* slot, map<string,string> nearBuildings, map<string,MyArray<Group> > trainer) {
 	// check age constraint
 	switch (age) {
 	case Kind: // children must not train after maxTimeChild
@@ -195,6 +217,10 @@ bool Group::add(GymSlot* slot, map<string,string> nearBuildings) {
 	if(!possible)
 		return false;
 
+	// check if trainer is available
+	if(trainer[string(name)].count > 1 && !trainerAvailable(name, trainer[name], slot -> time))
+		return false;
+
 	// TODO: do we need to check more?
 	// i think now we can add the slot
 	gyms.arr[gyms.count] = slot;
@@ -214,7 +240,7 @@ void Group::remove(PoolSlot* slot) {
 
 void Group::remove(GymSlot* slot) {
 	if (gyms.arr[gyms.count-1] == slot) {
-		gyms.arr[gyms.count-1] == NULL;
+		gyms.arr[gyms.count-1] = NULL;
 		gyms.count--;
 	}
 	else
