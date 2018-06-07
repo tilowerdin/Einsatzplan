@@ -22,6 +22,7 @@ extern const char* NEARTOKEN;
 extern const char* GROUPTOKEN;
 extern const char* COMMENT;
 extern const char* EXCLUDETOKEN;
+extern const char* ONLYONETOKEN;
 
 // age
 extern const char* CHILDREN;
@@ -51,5 +52,6 @@ extern const int COLGYM;
 #define NEARSTATE 3
 #define GROUPSTATE 4
 #define EXCLUDESTATE 5
+#define ONLYONESTATE 6
 
 #endif /* CONSTANTS_H_ */

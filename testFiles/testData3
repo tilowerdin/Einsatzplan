@@ -68,8 +68,9 @@ Freiberger Frei
 14 AlterSack 2 1 0
 17 AlterSack 1 1 0
 18 AlterSack 1 1 0
-19 AlterSack 1 1 0
+17 AlterSack 1 1 0
 >Trainerabwesenheit
-17 Mo Di Mi Do Sa So -- nur Fr
 18 Mo Di Mi Do Sa So -- nur Fr
 19 Mo Di Mi Do Sa So -- nur Fr
+>EinTag
+17

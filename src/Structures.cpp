@@ -9,6 +9,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 bool trainerAvailable(char*, MyArray<Group> groups, Time* time) {
 	for (int i = 0; i < groups.count; i++) {
@@ -46,7 +47,10 @@ string PoolSlot::toString() {
 	return res;
 }
 
-bool Group::add(PoolSlot* slot, map<string,MyArray<Group> > trainer, map<string,pair<int, Day*> > excludeDays) {
+bool Group::add( PoolSlot* slot
+		       , map<string,MyArray<Group> > trainer
+			   , map<string,pair<int, Day*> > excludeDays
+			   , MyArray<char> onlyOne) {
 	// check age constraint
 	switch (age) {
 	case Kind: // children must not train after maxTimeChild
@@ -202,6 +206,30 @@ bool Group::add(PoolSlot* slot, map<string,MyArray<Group> > trainer, map<string,
 		}
 		if (equalDay && !nearTime)
 			return false;
+	}
+
+	// check the only one condition
+	bool checkIt = false;
+	for (int i = 0; i < onlyOne.count; i++) {
+		if (strcmp(onlyOne.arr[i], name) == 0) {
+			checkIt = true;
+			break;
+		}
+	}
+	if (checkIt) {
+		for (int i = 0; i < groups.count; i++) {
+			if (groups.arr[i]->amountWater > 1) {
+				char* buf = (char*) calloc(256, sizeof(char));
+				//sprintf(buf,"hallo");
+				sprintf(buf,"Trainer %s kann nicht nur an einem Tag kommen,\n%s",name,"da eine seiner/ihrer Gruppen öfter Training hat.");
+				throw buf;
+			}
+
+			if (groups.arr[i] -> pools.count > 0 // if group already has a session
+				&& groups.arr[i] -> pools.arr[0] -> time -> day != slot -> time -> day) { // return if days do not equal
+				return false;
+			}
+		}
 	}
 
 	// TODO: do we need to check more?

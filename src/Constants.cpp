@@ -13,6 +13,7 @@ const char* NEARTOKEN = ">Nahe";
 const char* GROUPTOKEN = ">Gruppe";
 const char* COMMENT = "--";
 const char* EXCLUDETOKEN = ">Trainerabwesenheit";
+const char* ONLYONETOKEN = ">EinTag";
 
 // age
 const char* CHILDREN = "Kind";

@@ -24,6 +24,7 @@ struct stat st = {0};
 map<string,string> nearBuildings;
 map<string,MyArray<Group> > trainer;
 map<string,pair<int, Day*> > excludeTrainer;
+MyArray<char> onlyOneTrainer;
 
 MyArray<PoolSlot> toPoolSlot (map<int, char*> line, char* pool) {
 
@@ -113,7 +114,7 @@ void dfs(int from, bool* taken, MyArray<PoolSlot> pools, MyArray<Group> groups, 
 
 		for(int j = 0; j < groups.count; j++) {
 
-			if (groups.arr[j] -> add(pools.arr[i], trainer, excludeTrainer)) {
+			if (groups.arr[j] -> add(pools.arr[i], trainer, excludeTrainer, onlyOneTrainer)) {
 				taken[i] = true;
 
 				// before going deeper try to find parallelLanes -1
@@ -129,7 +130,7 @@ void dfs(int from, bool* taken, MyArray<PoolSlot> pools, MyArray<Group> groups, 
 						if (taken[m])
 							continue;
 
-						if (groups.arr[j] -> add(pools.arr[m], trainer, excludeTrainer)) {
+						if (groups.arr[j] -> add(pools.arr[m], trainer, excludeTrainer, onlyOneTrainer)) {
 							takenIndices[k] = m;
 							taken[m] = true;
 							break;
@@ -209,6 +210,8 @@ char* outputDir = "out";
 
 void printSolutionToFile(MyArray<Group> groups) {
 	sols++;
+
+	cout << "found a solution" << endl;
 
 	if (sols > MAXSOLUTIONS){
 //		return;
@@ -327,6 +330,10 @@ int main(int argc, char* argv[]) {
 				{ // starting a exclude day for trainers section
 					state = EXCLUDESTATE;
 				}
+				else if (strcmp(m[0],ONLYONETOKEN) == 0)
+				{
+					state = ONLYONESTATE;
+				}
 				else
 				{ // reading train time
 
@@ -355,6 +362,9 @@ int main(int argc, char* argv[]) {
 						break;
 					case EXCLUDESTATE:
 						exclude(m);
+						break;
+					case ONLYONESTATE:
+						onlyOneTrainer.add(m[0]);
 						break;
 					default:
 						break;

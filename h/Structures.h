@@ -99,7 +99,7 @@ struct Group {
 
 	string toString();
 
-	bool add(PoolSlot* slot, map<string,MyArray<Group> > trainer, map<string,pair<int, Day*> > excludeDays);
+	bool add(PoolSlot* slot, map<string,MyArray<Group> > trainer, map<string,pair<int, Day*> > excludeDays, MyArray<char> onlyOne);
 	bool add(GymSlot* slot, map<string,string> nearBuildings, map<string,MyArray<Group> > trainer);
 
 	void remove(PoolSlot* slot);
