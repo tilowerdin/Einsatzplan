@@ -135,6 +135,16 @@ bool Group::add(PoolSlot* slot) {
 		}
 	}
 
+	// check pause for groups that have an amount of two times training
+	// only check the pause if there already is a session saved
+	if (amountWater == 2 && pools.count > 0) {
+		Day d1 = pools.arr[0] -> time -> day;
+		Day d2 = slot -> time -> day;
+		if (abs(d1 - d2) <= DAYSPAUSE     // at least DAYSPAUSE pause between sessions in this week
+			|| abs((d1 + DAYSPAUSE) % 7 - (d2 + DAYSPAUSE) % 7 ) <= DAYSPAUSE) // pause over the week end
+			return false;
+	}
+
 	// TODO: do we need to check more?
 	// i think now we can add the slot
 	pools.arr[pools.count] = slot;

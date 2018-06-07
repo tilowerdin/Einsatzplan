@@ -13,7 +13,7 @@
 using namespace std;
 
 #define MAXSOLUTIONS 10
-
+#define DAYSPAUSE 2
 
 extern const char* POOLTOKEN;
 extern const char* GYMTOKEN;

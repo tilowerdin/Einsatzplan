@@ -207,8 +207,10 @@ char* outputDir = "out";
 void printSolutionToFile(MyArray<Group> groups) {
 	sols++;
 
-	if (sols > MAXSOLUTIONS)
+	if (sols > MAXSOLUTIONS){
+//		return;
 		throw "finished";
+	}
 
 	char filename[16];
 	sprintf(filename, "%s/sol%d", outputDir,sols);
@@ -351,7 +353,7 @@ int main(int argc, char* argv[]) {
 		dfs(0, falseArray(pools.count), pools, gs, gyms);
 
 		if (sols > 0)
-			cout << "found" << endl;
+			cout << "found " << sols << " solutions" << endl;
 		else
 			cout << "not found" << endl;
 
