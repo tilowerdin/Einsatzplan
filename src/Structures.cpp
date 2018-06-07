@@ -174,6 +174,36 @@ bool Group::add(PoolSlot* slot, map<string,MyArray<Group> > trainer, map<string,
 		return false;
 	}
 
+	// check that if the trainer already has some event at that day that they are directly lined up.
+	if (groups.count > 1) {
+		bool equalDay = false;
+		bool nearTime = false;
+		for (int i = 0; i < groups.count; i++) {
+			MyArray<PoolSlot> pools = groups.arr[i]->pools;
+			for(int j = 0; j < pools.count; j++) {
+				if(pools.arr[j] -> time -> day == slot -> time -> day) {
+					equalDay = true;
+					if (abs(pools.arr[j] -> time -> hour - slot -> time -> hour) <= 1
+						&& strcmp(slot -> label, pools.arr[j] -> label) == 0) {
+						nearTime = true;
+					}
+				}
+			}
+			MyArray<GymSlot> gyms = groups.arr[i] -> gyms;
+			for(int j = 0; j < gyms.count; j++) {
+				if(gyms.arr[j] -> time -> day == slot -> time -> day) {
+					equalDay = true;
+					if (abs(gyms.arr[j] -> time -> hour - slot -> time -> hour) <= 1
+						&& strcmp(slot -> label, gyms.arr[j] -> label) == 0) {
+						nearTime = true;
+					}
+				}
+			}
+		}
+		if (equalDay && !nearTime)
+			return false;
+	}
+
 	// TODO: do we need to check more?
 	// i think now we can add the slot
 	pools.arr[pools.count] = slot;
