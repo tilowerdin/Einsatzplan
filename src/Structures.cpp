@@ -283,7 +283,7 @@ bool Group::add(GymSlot* slot, map<string,string> nearBuildings, map<string,MyAr
 		return false;
 
 	// check if trainer is available
-	if(trainer[string(name)].count > 1 && !trainerAvailable(name, trainer[name], slot -> time))
+	if(!trainerAvailable(name, trainer[name], slot -> time))
 		return false;
 
 	// TODO: do we need to check more?
@@ -328,6 +328,29 @@ string Group::toString() {
 	}
 
 	return res;
+}
+
+int Group::toValue() {
+	int value = 0;
+
+	switch (age) {
+	case Kind:
+		value += 300;
+		break;
+	case Jugend:
+		value += 200;
+		break;
+	case AlterSack:
+		value += 100;
+		break;
+	default:
+		break;
+	}
+
+	value += parallelLanes*10;
+	value += amountWater;
+
+	return value;
 }
 
 string fromAge(Age age) {

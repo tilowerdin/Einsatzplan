@@ -104,6 +104,8 @@ struct Group {
 
 	void remove(PoolSlot* slot);
 	void remove(GymSlot* slot);
+
+	int toValue();
 };
 
 string fromAge(Age age);

@@ -102,56 +102,33 @@ Group* group(char* name, Age age, int water, int lanes, int gym) {
 	return res;
 }
 
-void dfs(int from, bool* taken, MyArray<PoolSlot> pools, MyArray<Group> groups, MyArray<GymSlot> gyms) {
+void dfs(MyArray<Group> groups, bool* taken, MyArray<PoolSlot> pools, MyArray<GymSlot> gyms) {
 	if (finish(true, taken, pools.count, groups)) {
-		dfs(0, falseArray(gyms.count),gyms,groups);
+		dfs(groups, falseArray(gyms.count),gyms);
 		return;
 	}
 
-	for (int i = from; i < pools.count; i++) {
+	Group* group;
+
+	for(int i = 0; i < groups.count; i++) {
+		Group* g = groups.arr[i];
+		if (g -> amountWater * g -> parallelLanes > g -> pools.count) {
+			group = g;
+			break;
+		}
+	}
+
+	for (int i = 0; i < pools.count; i++) {
 		if (taken[i])
 			continue;
 
-		for(int j = 0; j < groups.count; j++) {
+		if (group -> add(pools.arr[i], trainer, excludeTrainer, onlyOneTrainer)) {
+			taken[i] = true;
 
-			if (groups.arr[j] -> add(pools.arr[i], trainer, excludeTrainer, onlyOneTrainer)) {
-				taken[i] = true;
+			dfs(groups, taken, pools, gyms);
 
-				// before going deeper try to find parallelLanes -1
-				// other lanes -> makes it a lot faster
-				int takenIndices[groups.arr[j]->parallelLanes];
-				for(int n = 0; n < groups.arr[j]->parallelLanes; n++) {
-					takenIndices[n] = -1;
-				}
-				takenIndices[0] = i;
-
-				for (int k = 1; k < groups.arr[j]->parallelLanes; k++) {
-					for (int m = from; m < pools.count; m++) {
-						if (taken[m])
-							continue;
-
-						if (groups.arr[j] -> add(pools.arr[m], trainer, excludeTrainer, onlyOneTrainer)) {
-							takenIndices[k] = m;
-							taken[m] = true;
-							break;
-						}
-					}
-					if (takenIndices[k] == -1)
-						break;
-				}
-
-				// if we were able to take parallelLanes many lanes
-				if (takenIndices[groups.arr[j]->parallelLanes-1] > -1)
-					dfs(i, taken, pools, groups, gyms);
-
-				//backtracking
-				for (int k = groups.arr[j]->parallelLanes-1; k >= 0; k--) {
-					if (takenIndices[k] != -1) {
-						taken[takenIndices[k]] = false;
-						groups.arr[j] -> remove(pools.arr[takenIndices[k]]);
-					}
-				}
-			}
+			taken[i] = false;
+			group -> remove(pools.arr[i]);
 		}
 	}
 }
@@ -176,26 +153,34 @@ bool finish(bool onlyWater, bool* taken, int count, MyArray<Group> groups) {
 
 	return finish1 || finish2;
 }
-// TODO add remove GymSlot to Group
-void dfs(int from, bool* taken, MyArray<GymSlot> gyms, MyArray<Group> groups) {
+
+void dfs(MyArray<Group> groups, bool* taken, MyArray<GymSlot> gyms) {
 	if(finish(false, taken, gyms.count, groups)) {
 		printSolutionToFile(groups);
 		return;
 	}
 
-	for (int i = from; i < gyms.count; i++) {
+	Group* group;
+
+	for (int i = 0; i < groups.count; i++) {
+		if (groups.arr[i] -> amountGym > groups.arr[i] -> gyms.count) {
+			group = groups.arr[i];
+			break;
+		}
+	}
+
+	// search for a session for this group
+	for (int i = 0; i < gyms.count; i++) {
 		if (taken[i])
 			continue;
 
-		for(int j = 0; j < groups.count; j++) {
-			if (groups.arr[j] -> add(gyms.arr[i],nearBuildings, trainer)) {
-				taken[i] = true;
+		if (group -> add(gyms.arr[i], nearBuildings, trainer)) {
+			taken[i] = true;
 
-				dfs(i, taken, gyms, groups);
+			dfs(groups, taken, gyms);
 
-				taken[i] = false;
-				groups.arr[j] -> remove(gyms.arr[i]);
-			}
+			taken[i] = false;
+			group -> remove(gyms.arr[i]);
 		}
 	}
 }
@@ -241,6 +226,53 @@ void exclude(map<int,char*> m) {
 		days.second[i-1] = toDay(m[i]);
 	}
 	excludeTrainer[string(m[0])] = days;
+}
+
+void sort(MyArray<Group> toSort) {
+	Group* currentBest;
+	int index;
+	int bestValue;
+
+	// sort by complication
+	for(int i = 0; i < toSort.count-1; i++)
+	{
+		currentBest = toSort.arr[i];
+		bestValue = currentBest -> toValue();
+		index = i;
+		for (int j = i+1; j < toSort.count; j++)
+		{
+			if (bestValue < toSort.arr[j] -> toValue())
+			{
+				currentBest = toSort.arr[j];
+				bestValue = currentBest -> toValue();
+				index = j;
+			}
+		}
+		toSort.arr[index] = toSort.arr[i];
+		toSort.arr[i] = currentBest;
+	}
+
+	int value;
+	int j;
+	// sort by name
+	for(int i = 0; i < toSort.count; i++) {
+		currentBest = toSort.arr[i];
+		value = currentBest->toValue();
+		index = i;
+		j = i+1;
+		while (j < toSort.count && toSort.arr[j] -> toValue() == value)
+		{
+			if (strcmp(currentBest -> name, toSort.arr[j] -> name) > 0)
+			{
+				currentBest = toSort.arr[j];
+				value = currentBest -> toValue();
+				index = j;
+			}
+			j++;
+		}
+		toSort.arr[index] = toSort.arr[i];
+		toSort.arr[i] = currentBest;
+	}
 }
 
 int main(int argc, char* argv[]) {
@@ -382,7 +414,12 @@ int main(int argc, char* argv[]) {
 		gs.count = groupCount;
 		gs.arr = groups;
 
-		dfs(0, falseArray(pools.count), pools, gs, gyms);
+		sort(gs);
+
+		for (int i = 0; i < gs.count; i++)
+			cout << gs.arr[i]->toString() << endl;
+
+		dfs(gs, falseArray(pools.count), pools, gyms);
 
 		if (sols > 0)
 			cout << "found " << sols << " solutions" << endl;
