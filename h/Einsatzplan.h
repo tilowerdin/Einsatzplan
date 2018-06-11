@@ -23,9 +23,9 @@ MyArray<PoolSlot> toPoolSlot (map<int, char*> line, char* pool);
 
 MyArray<GymSlot> toGymSlot (map<int, char*> line, char* label);
 
-PoolSlot* poolSlot(Day day, int hour, int lane, char* pool);
+PoolSlot* poolSlot(Day day, double hour, int lane, char* pool);
 
-GymSlot* gymSlot(Day day, int hour, char* label);
+GymSlot* gymSlot(Day day, double hour, char* label);
 
 Group* group(char* name, Age age, int water, int lanes, int gym);
 

@@ -20,6 +20,8 @@ using namespace std;
 enum Day { Mo, Di, Mi, Do, Fr, Sa, So };
 enum Age { Kind, Jugend, AlterSack };
 
+string niceDoubleString(double d);
+
 template <typename A>
 struct MyArray {
 	int count;
@@ -61,7 +63,7 @@ struct MyArray {
 };
 
 struct Time {
-	int hour;
+	double hour;
 	Day day;
 
 	bool equals(Time time);

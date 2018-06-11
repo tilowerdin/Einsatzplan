@@ -30,18 +30,20 @@ MyArray<PoolSlot> toPoolSlot (map<int, char*> line, char* pool) {
 
 	Day day = toDay(line[COLDAY]);
 
-	int from = atoi(line[COLFROM]);
-	int to = atoi(line[COLTO]);
+	double from = atof(line[COLFROM]);
+	double to = atof(line[COLTO]);
 	int lane = atoi(line[COLLANE]);
 
-
 	MyArray<PoolSlot> result;
-	result.count = to - from;
-	result.arr = (PoolSlot**) calloc((to-from), sizeof(PoolSlot*));
+	double timeDiff = to - from;
+	int minus = (1 - HOURPART) / HOURPART;
+	int total = timeDiff / HOURPART;
+	result.count = round(total - minus);
+	result.arr = (PoolSlot**) calloc(result.count, sizeof(PoolSlot*));
 
-	for (int i = from; i < to; i++) {
-		PoolSlot* slot = poolSlot(day, i, lane, pool);
-		result.arr[i-from] = slot;
+	for (int i = 0; i < result.count; i++) {
+		PoolSlot* slot = poolSlot(day, from + i*HOURPART, lane, pool);
+		result.arr[i] = slot;
 	}
 
 	return result;
@@ -49,22 +51,22 @@ MyArray<PoolSlot> toPoolSlot (map<int, char*> line, char* pool) {
 
 MyArray<GymSlot> toGymSlot (map<int, char*> line, char* label) {
     Day day = toDay(line[COLDAY]);
-    int from = atoi(line[COLFROM]);
-    int to = atoi(line[COLTO]);
+    int from = atof(line[COLFROM]);
+    int to = atof(line[COLTO]);
 
     MyArray<GymSlot> result;
-    result.count = to-from;
-    result.arr = (GymSlot**) calloc((to-from), sizeof(GymSlot*));
+    result.count = round((to-from) / HOURPART - (1 - HOURPART) / HOURPART);
+    result.arr = (GymSlot**) calloc(result.count, sizeof(GymSlot*));
 
-    for(int i = from; i < to; i++) {
-    	GymSlot* slot = gymSlot(day,i,label);
-    	result.arr[i-from] = slot;
+    for(int i = 0; i < result.count; i++) {
+    	GymSlot* slot = gymSlot(day,from + i*HOURPART,label);
+    	result.arr[i] = slot;
     }
 
     return result;
 }
 
-PoolSlot* poolSlot(Day day, int hour, int lane, char* pool) {
+PoolSlot* poolSlot(Day day, double hour, int lane, char* pool) {
 	PoolSlot* slot = (PoolSlot*) malloc(sizeof(PoolSlot));
 	slot -> lane = lane;
 	slot -> label = pool;
@@ -75,7 +77,7 @@ PoolSlot* poolSlot(Day day, int hour, int lane, char* pool) {
 	return slot;
 }
 
-GymSlot* gymSlot(Day day, int hour, char* label) {
+GymSlot* gymSlot(Day day, double hour, char* label) {
 	GymSlot* slot = (GymSlot*) malloc(sizeof(GymSlot));
 	slot -> label = label;
 	Time* time = (Time*) malloc(sizeof(Time));
@@ -102,6 +104,21 @@ Group* group(char* name, Age age, int water, int lanes, int gym) {
 	return res;
 }
 
+bool inRange(PoolSlot* s1, PoolSlot* s2) {
+	bool res = strcmp(s1 -> label, s2 -> label) == 0;
+	res &= s1 -> lane == s2 -> lane;
+	res &= s1 -> time -> day == s2 -> time -> day;
+	res &= abs(s1 -> time -> hour - s2 -> time -> hour) < 1;
+	return res;
+}
+
+bool inRange(GymSlot* s1, GymSlot* s2) {
+	bool res = strcmp(s1 -> label, s2 -> label) == 0;
+	res &= s1 -> time -> day == s2 -> time -> day;
+	res &= abs(s1 -> time -> hour - s2 -> time -> hour) < 1;
+	return res;
+}
+
 void dfs(MyArray<Group> groups, bool* taken, MyArray<PoolSlot> pools, MyArray<GymSlot> gyms) {
 	if (finish(true, taken, pools.count, groups)) {
 		dfs(groups, falseArray(gyms.count),gyms);
@@ -123,11 +140,30 @@ void dfs(MyArray<Group> groups, bool* taken, MyArray<PoolSlot> pools, MyArray<Gy
 			continue;
 
 		if (group -> add(pools.arr[i], trainer, excludeTrainer, onlyOneTrainer)) {
-			taken[i] = true;
+			int countSlotsToCheck = 2 / HOURPART - 1;
+			// take all indices that overlap with this slot
+			int takenIndices[countSlotsToCheck];
+			for (int j = 0; j < countSlotsToCheck; j++)
+			{
+				takenIndices[j] = -1;
+			}
+			// check slots before and after this slot
+			for (int j = -(1/HOURPART - 1); j < 1 / HOURPART; j++) {
+				if (i + j >= 0 && i + j < pools.count && !taken[i+j] && inRange(pools.arr[i], pools.arr[i+j])){
+					int pos = round(1 / HOURPART - 1);
+					takenIndices[j + pos] = i+j;
+					taken[i+j] = true;
+				}
+			}
 
 			dfs(groups, taken, pools, gyms);
 
-			taken[i] = false;
+			for(int j = 0; j < countSlotsToCheck; j++){
+				if (takenIndices[j] != -1) {
+					taken[takenIndices[j]] = false;
+				}
+			}
+
 			group -> remove(pools.arr[i]);
 		}
 	}
@@ -175,11 +211,30 @@ void dfs(MyArray<Group> groups, bool* taken, MyArray<GymSlot> gyms) {
 			continue;
 
 		if (group -> add(gyms.arr[i], nearBuildings, trainer)) {
-			taken[i] = true;
+			int countSlotsToCheck = 2 / HOURPART - 1;
+			// take all indices that overlap with this slot
+			int takenIndices[countSlotsToCheck];
+			for (int j = 0; j < countSlotsToCheck; j++)
+			{
+				takenIndices[j] = -1;
+			}
+			// check slots before and after this slot
+			for (int j = -(1/HOURPART - 1); j < 1 / HOURPART; j++) {
+				if (i + j >= 0 && i + j < gyms.count && !taken[i+j] && inRange(gyms.arr[i], gyms.arr[i+j])){
+					int pos = round(1 / HOURPART - 1);
+					takenIndices[j + pos] = i+j;
+					taken[i+j] = true;
+				}
+			}
 
 			dfs(groups, taken, gyms);
 
-			taken[i] = false;
+			for(int j = 0; j < countSlotsToCheck; j++){
+				if (takenIndices[j] != -1) {
+					taken[takenIndices[j]] = false;
+				}
+			}
+
 			group -> remove(gyms.arr[i]);
 		}
 	}

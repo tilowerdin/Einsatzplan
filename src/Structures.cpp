@@ -10,16 +10,49 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string>
+#include <math.h>
+
+#include <iostream>
+
+string niceDoubleString(double d) {
+	char* res = (char*) calloc(16, sizeof(char));
+	sprintf(res, "%f", round(d * 100) / 100.0);
+	bool cont = true;
+	for (int i = 15; i >= 0; i--) {
+
+		if (cont && ((res[i] == '0') || (res[i] == '\0'))) {
+			res[i] = '\0';
+		}
+		else if (cont && (res[i] == '.'))
+		{
+			res[i] = '\0';
+			cont = false;
+		}
+		else
+		{
+			cont = false;
+		}
+	}
+	return string(res);
+}
+
+bool inRange(Time* t1, Time* t2) {
+	if (t1 -> day != t2 -> day)
+		return false;
+
+	return fabs(t1 -> hour - t2 -> hour) < 1;
+}
 
 bool trainerAvailable(char*, MyArray<Group> groups, Time* time) {
 	for (int i = 0; i < groups.count; i++) {
 		for (int j = 0; j < groups.arr[i] -> pools.count; j++) {
-			if (time->equals(*(groups.arr[i] -> pools.arr[j] -> time))) {
+			if (inRange(time, groups.arr[i] -> pools.arr[j] -> time)) {
 				return false;
 			}
 		}
 		for (int j = 0; j < groups.arr[i] -> gyms.count; j++) {
-			if (time->equals(*(groups.arr[i] -> gyms.arr[j] -> time))) {
+			if (inRange(time, groups.arr[i] -> gyms.arr[j] -> time)) {
 				return false;
 			}
 		}
@@ -34,7 +67,7 @@ bool Time::equals(Time time) {
 string Slot::toString() {
 	string res = string(label==NULL ? "" : label) + " "
 		 + fromDay(time -> day) + " "
-		 + string(itoa(time -> hour)) + "\n";
+		 + niceDoubleString(time -> hour) + "\n";
 
 	return res;
 }
@@ -42,7 +75,7 @@ string Slot::toString() {
 string PoolSlot::toString() {
 	string res = string(label==NULL ? "" : label) + " "
 		 + fromDay(time -> day) + " "
-		 + string(itoa(time -> hour)) + " "
+		 + niceDoubleString(time -> hour) + " "
 		 + string(itoa(lane)) + "\n";
 	return res;
 }
@@ -187,7 +220,7 @@ bool Group::add( PoolSlot* slot
 			for(int j = 0; j < pools.count; j++) {
 				if(pools.arr[j] -> time -> day == slot -> time -> day) {
 					equalDay = true;
-					if (abs(pools.arr[j] -> time -> hour - slot -> time -> hour) <= 1
+					if (fabs(pools.arr[j] -> time -> hour - slot -> time -> hour) <= 1
 						&& strcmp(slot -> label, pools.arr[j] -> label) == 0) {
 						nearTime = true;
 					}
@@ -197,7 +230,7 @@ bool Group::add( PoolSlot* slot
 			for(int j = 0; j < gyms.count; j++) {
 				if(gyms.arr[j] -> time -> day == slot -> time -> day) {
 					equalDay = true;
-					if (abs(gyms.arr[j] -> time -> hour - slot -> time -> hour) <= 1
+					if (fabs(gyms.arr[j] -> time -> hour - slot -> time -> hour) <= 1
 						&& strcmp(slot -> label, gyms.arr[j] -> label) == 0) {
 						nearTime = true;
 					}
@@ -273,9 +306,11 @@ bool Group::add(GymSlot* slot, map<string,string> nearBuildings, map<string,MyAr
 	// check that there is a water session near this gym session
 	bool possible = false;
 	for (int i = 0; i < pools.count; i++) {
+		double diff = slot -> time -> hour - pools.arr[i] -> time -> hour;
+		diff = fabs(diff);
 		if(nearBuildings[slot -> label].compare(pools.arr[i] -> label) == 0
 		   && slot -> time -> day == pools.arr[i] -> time -> day
-		   && abs(slot -> time -> hour - pools.arr[i] -> time -> hour) <= 1) {
+		   && diff <= 1) {
 			possible = true;
 		}
 	}
