@@ -86,11 +86,13 @@ struct GymSlot : Slot {
 };
 
 struct Near {
-	int gym;
-	int pool;
+	char* b1;
+	char* b2;
+	double time;
 };
 
 struct Group {
+	int from;
 	char* name;
 	Age age;
 	int amountWater;
@@ -102,7 +104,7 @@ struct Group {
 	string toString();
 
 	bool add(PoolSlot* slot, map<string,MyArray<Group> > trainer, map<string,pair<int, Day*> > excludeDays, MyArray<char> onlyOne);
-	bool add(GymSlot* slot, map<string,string> nearBuildings, map<string,MyArray<Group> > trainer);
+	bool add(GymSlot* slot, MyArray<Near> nearBuildings, map<string,MyArray<Group> > trainer);
 
 	void remove(PoolSlot* slot);
 	void remove(GymSlot* slot);
@@ -117,7 +119,5 @@ string fromDay(Day day);
 Age toAge(char* str);
 
 Day toDay (char* dayStr);
-
-
 
 #endif /* STRUCTURES_H_ */

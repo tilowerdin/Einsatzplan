@@ -14,7 +14,7 @@ using namespace std;
 
 #define MAXSOLUTIONS 10
 #define DAYSPAUSE 2
-#define HOURPART 1
+#define HOURPART 0.25
 
 // token to be searched for in the input file
 extern const char* POOLTOKEN;

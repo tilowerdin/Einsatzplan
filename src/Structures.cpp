@@ -87,11 +87,11 @@ bool Group::add( PoolSlot* slot
 	// check age constraint
 	switch (age) {
 	case Kind: // children must not train after maxTimeChild
-		if (slot -> time -> hour >= maxTimeChild)
+		if (slot -> time -> hour + 1 > maxTimeChild)
 			return false;
 		break;
 	case Jugend: // youth must not train after maxTimeYouth
-		if (slot -> time -> hour >= maxTimeYouth)
+		if (slot -> time -> hour + 1 > maxTimeYouth)
 			return false;
 		break;
 	case AlterSack: // old people train whenever they want
@@ -272,15 +272,15 @@ bool Group::add( PoolSlot* slot
 	return true;
 }
 
-bool Group::add(GymSlot* slot, map<string,string> nearBuildings, map<string,MyArray<Group> > trainer) {
+bool Group::add(GymSlot* slot, MyArray<Near> nearBuildings, map<string,MyArray<Group> > trainer) {
 	// check age constraint
 	switch (age) {
 	case Kind: // children must not train after maxTimeChild
-		if (slot -> time -> hour >= maxTimeChild)
+		if (slot -> time -> hour + 1 > maxTimeChild)
 			return false;
 		break;
 	case Jugend: // youth must not train after maxTimeYouth
-		if (slot -> time -> hour >= maxTimeYouth)
+		if (slot -> time -> hour + 1 > maxTimeYouth)
 			return false;
 		break;
 	case AlterSack: // old people train whenever they want
@@ -308,9 +308,19 @@ bool Group::add(GymSlot* slot, map<string,string> nearBuildings, map<string,MyAr
 	for (int i = 0; i < pools.count; i++) {
 		double diff = slot -> time -> hour - pools.arr[i] -> time -> hour;
 		diff = fabs(diff);
-		if(nearBuildings[slot -> label].compare(pools.arr[i] -> label) == 0
+		double dist = -1;
+		for (int j = 0; j < nearBuildings.count; j++) {
+			if (strcmp(nearBuildings.arr[j] -> b1, slot -> label) == 0
+				&& strcmp(nearBuildings.arr[j] -> b2, pools.arr[i] -> label) == 0) {
+				dist = nearBuildings.arr[j] -> time;
+			} else if (strcmp(nearBuildings.arr[j] -> b2, slot -> label) == 0
+					&& strcmp(nearBuildings.arr[j] -> b1, pools.arr[i] -> label) == 0) {
+				dist = nearBuildings.arr[j] -> time;
+			}
+		}
+		if(dist > -1
 		   && slot -> time -> day == pools.arr[i] -> time -> day
-		   && diff <= 1) {
+		   && diff == 1 + dist) {
 			possible = true;
 		}
 	}

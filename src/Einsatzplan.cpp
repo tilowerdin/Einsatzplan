@@ -21,7 +21,7 @@
 
 struct stat st = {0};
 
-map<string,string> nearBuildings;
+MyArray<Near> nearBuildings;
 map<string,MyArray<Group> > trainer;
 map<string,pair<int, Day*> > excludeTrainer;
 MyArray<char> onlyOneTrainer;
@@ -101,6 +101,8 @@ Group* group(char* name, Age age, int water, int lanes, int gym) {
     res -> gyms.arr = (GymSlot**) calloc(gym, sizeof(GymSlot*));
 	res -> pools.arr = (PoolSlot**) calloc(water*lanes, sizeof(PoolSlot*));
 
+	res -> from = 0;
+
 	return res;
 }
 
@@ -135,11 +137,15 @@ void dfs(MyArray<Group> groups, bool* taken, MyArray<PoolSlot> pools, MyArray<Gy
 		}
 	}
 
+//	for (int i = group -> from; i < pools.count; i++) {
 	for (int i = 0; i < pools.count; i++) {
 		if (taken[i])
 			continue;
 
 		if (group -> add(pools.arr[i], trainer, excludeTrainer, onlyOneTrainer)) {
+			int tmpFrom = group -> from;
+			group -> from = i;
+
 			int countSlotsToCheck = 2 / HOURPART - 1;
 			// take all indices that overlap with this slot
 			int takenIndices[countSlotsToCheck];
@@ -165,6 +171,7 @@ void dfs(MyArray<Group> groups, bool* taken, MyArray<PoolSlot> pools, MyArray<Gy
 			}
 
 			group -> remove(pools.arr[i]);
+			group -> from = tmpFrom;
 		}
 	}
 }
@@ -251,7 +258,7 @@ char* outputDir = "out";
 void printSolutionToFile(MyArray<Group> groups) {
 	sols++;
 
-	cout << "found a solution" << endl;
+	cout << "found solution " << sols << endl;
 
 	if (sols > MAXSOLUTIONS){
 //		return;
@@ -381,7 +388,7 @@ int main(int argc, char* argv[]) {
 	Group** groups = (Group**) calloc(64,sizeof(Group*));
 	int groupCount = 0;
 	Group* g;
-
+	Near* n;
 
 	int lineNumber = 0;
 
@@ -434,8 +441,16 @@ int main(int argc, char* argv[]) {
 						gyms.append(lineGyms);
 						break;
 					case NEARSTATE: // reading near
-						nearBuildings[m[0]] = m[1];
-						nearBuildings[m[1]] = m[0];
+						n = (Near*) calloc(1, sizeof(Near));
+						n->b1 = m[0];
+						n->b2 = m[1];
+						if (m[2] != NULL)
+							n -> time = atof(m[2]);
+						else
+							n -> time = 0;
+						nearBuildings.add(n);
+//						nearBuildings[m[0]] = m[1];
+//						nearBuildings[m[1]] = m[0];
 						break;
 					case GROUPSTATE:
 						g = group( m[COLNAME]
